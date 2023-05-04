@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "IMU",
+			"path": "IMU"
+		},
+		{
+			"name": "TickerTimer",
+			"path": "TickerTimer"
+		},
+		{
+			"name": "GPS",
+			"path": "GPS"
+		}
+	],
+	"settings": {}
+}
