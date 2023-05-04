@@ -13,7 +13,8 @@
 
 /**
  * @brief BNO055Sensor is a concrete implementation of the IIMU9DofSensor interface
- * for the BNO055 IMU sensor.
+ * for the BNO055 IMU sensor. Currently it exposes minimal functionality but exposes
+ * the BNO055 sensor if you need more access to it.
  */
 class BNO055Sensor : public IIMU9DofSensor
 {

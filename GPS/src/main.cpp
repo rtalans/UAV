@@ -1,11 +1,11 @@
 #include <HardwareSerial.h>
 #include "GPSModule.h"
 
-HardwareSerial consoleSerial = Serial;
 HardwareSerial gpsSerial = Serial2;
 
 int8_t rxPin = 16, txPin = 17;
 
+// The second parameter sets up the TickerTimer to perform a GPS read every 500ms (0.5 seconds)
 GPSModule gpsModule(&gpsSerial, 500);
 
 void DisplayGPSData();
@@ -48,13 +48,5 @@ void DisplayGPSData()
             Serial.printf("NMEA:%sLat: %.6f\nLong: %.6f\nAlt: %f\nSpd: %f\nCrs: %f\nSats: %d\n\n",
                           buffer, lat, lon, alt, spd, crs, sats);
         }
-        else
-        {
-            //Serial.println("isFixed failed!!!");
-        }
-    }
-    else
-    {
-        //Serial.println("gpsRead or newNMEAreceived failed!!!");
     }
 }

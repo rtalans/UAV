@@ -5,7 +5,10 @@
 #include <Ticker.h>
 
 /**
- * @brief A wrapper class for the Ticker library to provide a timer for the ESP32 platform.
+ * @brief A wrapper class for the Ticker library to provide a timer for any app
+ * built with the Arduino framework. Specifically for use in a C++ class.
+ * Note: that the Ticker library has been integrated into the Arduino Core. 
+ * Do not add the straub/Ticker lib to your project.
  */
 class TickerTimer
 {

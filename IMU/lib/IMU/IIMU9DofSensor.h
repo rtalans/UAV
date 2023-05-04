@@ -1,21 +1,10 @@
-// #ifndef IIMU9DOFSENSOR_H
-// #define IIMU9DOFSENSOR_H
-
-// class IIMU9DofSensor
-// {
-// public:
-//     virtual bool initialize() = 0;
-//     virtual float getPitch() = 0;
-//     virtual float getYaw() = 0;
-//     virtual float getRoll() = 0;
-//     virtual float getTemperature() = 0;
-// };
-// #endif // IIMU9DOFSENSOR_H
 #ifndef IIMU9DOFSENSOR_H
 #define IIMU9DOFSENSOR_H
 
 /**
  * IIMU9DofSensor is an abstract interface for 9DOF IMU sensors.
+ * Currently, it provides minimal functionality. If necessary, 
+ * concrete implementations can expose the underlying sensor.
  */
 class IIMU9DofSensor
 {
