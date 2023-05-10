@@ -65,21 +65,21 @@ void DisplayCalStatus(void)
     /* The data should be ignored until the system calibration is > 0 */
     // if (!system)
     // {
-    //     Serial.print("!\t");
+    //     serialLogger->logData("!\t");
     // }
 
     /* Display the floating point data */
-    Serial.printf("Pitch: %03.4f\tYaw: %03.4f\tRoll: %03.4f",
-                  event.orientation.y,
-                  event.orientation.x,
-                  event.orientation.z);
+    serialLogger->logData("Pitch: %03.4f\tYaw: %03.4f\tRoll: %03.4f",
+                          event.orientation.y,
+                          event.orientation.x,
+                          event.orientation.z);
 
     /* Display the individual values */
-    Serial.printf("\tSys: %d\tG: %d\tA: %d\tM: %d\n",
-                  system,
-                  gyro,
-                  accel,
-                  mag);
+    serialLogger->logData("\tSys: %d\tG: %d\tA: %d\tM: %d\n",
+                          system,
+                          gyro,
+                          accel,
+                          mag);
 }
 
 /**************************************************************************/
@@ -92,25 +92,18 @@ void DisplaySensorDetails(void)
 {
     sensor_t sensor;
     bnoSensor.getSensor().getSensor(&sensor);
-    Serial.println("------------------------------------");
-    Serial.print("Sensor:       ");
-    Serial.println(sensor.name);
-    Serial.print("Driver Ver:   ");
-    Serial.println(sensor.version);
-    Serial.print("Unique ID:    ");
-    Serial.println(sensor.sensor_id);
-    Serial.print("Max Value:    ");
-    Serial.print(sensor.max_value);
-    Serial.println(" xxx");
-    Serial.print("Min Value:    ");
-    Serial.print(sensor.min_value);
-    Serial.println(" xxx");
-    Serial.print("Resolution:   ");
-    Serial.print(sensor.resolution);
-    Serial.println(" xxx");
-    Serial.println("------------------------------------");
-    Serial.println("");
-    delay(500);
+    serialLogger->logData("------------------------------------");
+    serialLogger->logData("Sensor:       %s", sensor.name);
+    serialLogger->logData("Driver Ver:   %d", sensor.version);
+    serialLogger->logData("Unique ID:    %d", sensor.sensor_id);
+    serialLogger->logData("Max Value:    %f", sensor.max_value);
+    serialLogger->logData(" xxx");
+    serialLogger->logData("Min Value:    %f", sensor.max_value);
+    serialLogger->logData(" xxx");
+    serialLogger->logData("Resolution:   %f", sensor.resolution);
+    serialLogger->logData(" xxx");
+    serialLogger->logData("------------------------------------");
+    serialLogger->logData("");
 }
 
 /**************************************************************************/
@@ -126,13 +119,9 @@ void DisplaySensorStatus(void)
     bnoSensor.getSensor().getSystemStatus(&system_status, &self_test_results, &system_error);
 
     /* Display the results in the Serial Monitor */
-    Serial.println("");
-    Serial.print("System Status: 0x");
-    Serial.println(system_status, HEX);
-    Serial.print("Self Test:     0x");
-    Serial.println(self_test_results, HEX);
-    Serial.print("System Error:  0x");
-    Serial.println(system_error, HEX);
-    Serial.println("");
-    //delay(500);
+    serialLogger->logData("");
+    serialLogger->logData("System Status: %0X", system_status);
+    serialLogger->logData("Self Test:     %0X", self_test_results);
+    serialLogger->logData("System Error:  %d", system_error);
+    serialLogger->logData("");
 }
