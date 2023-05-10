@@ -5,43 +5,51 @@
  * @param serial The stream to communicate with the m_gps module.
  * @param intervalMs The time interval in milliseconds between updates.
  */
-GPSModule::GPSModule(Stream *serial, uint32_t intervalMs)
-    : m_gpsSerial(serial), m_gps(serial), m_initialized(false),
-      m_interval(intervalMs), m_updateGpsTimer(intervalMs, onUpdateGps, this) {}
+#include "GPSModule.h"
 
-/**
- * @brief Initializes the m_gps module and starts the update timer.
- * @return true if the m_gps module is successfully initialized, false otherwise.
- */
+GPSModule::GPSModule(Stream *serial)
+    : m_gpsSerial(serial), m_gps(m_gpsSerial), m_initialized(false)
+{
+}
+
 bool GPSModule::setup()
 {
-    if (!m_initialized)
+    m_gps.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+    //m_gps.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGAGSA);
+    m_gps.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
+    delay(1000);
+    m_initialized = true;
+    return true;
+}
+
+bool GPSModule::processGPSData()
+{
+    static String nmeaBuffer = "";
+    bool newDataAvailable = false;
+
+    while (m_gpsSerial->available())
     {
-        m_gps.begin(9600);
-        m_gps.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
-        m_gps.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
-        m_updateGpsTimer.begin();
-        m_initialized = true;
+        char c = m_gpsSerial->read();
+        if (c == '\n')
+        {
+            // We have a complete NMEA sentence
+            char nmeaBufferCopy[nmeaBuffer.length() + 1];
+            nmeaBuffer.toCharArray(nmeaBufferCopy, nmeaBuffer.length() + 1);
+            if (m_gps.parse(nmeaBufferCopy))
+            {
+                newDataAvailable = true;
+                m_lastNMEA = nmeaBuffer; // Store the last NMEA sentence
+            }
+
+            nmeaBuffer = ""; // Clear the buffer
+        }
+        else
+        {
+            nmeaBuffer += c; // Add the character to the buffer
+        }
     }
-    return m_initialized;
-}
 
-/**
- * @brief Reads data from the m_gps module.
- * @return true if data is available, false otherwise.
- */
-bool GPSModule::read()
-{
-    return m_gps.read();
-}
-
-/**
- * @brief Checks if new NMEA data is received.
- * @return true if new NMEA data is received, false otherwise.
- */
-bool GPSModule::newNMEAreceived()
-{
-    return m_gps.newNMEAreceived();
+    return newDataAvailable;
 }
 
 /**
@@ -53,14 +61,6 @@ void GPSModule::parse(char *buffer)
     m_gps.parse(buffer);
 }
 
-/**
- * @brief Checks if the GPS module has a fix on the satellites.
- * @return true if the GPS module has a fix, false otherwise.
- */
-bool GPSModule::isFixed()
-{
-    return m_gps.fix;
-}
 /**
  * @brief Retrieves the latitude from the GPS module.
  * @return The latitude value in decimal degrees.
@@ -126,28 +126,26 @@ Adafruit_GPS &GPSModule::getGPS()
 
 /**
  * @brief Retrieves the last received NMEA sentence from the GPS module.
- * @return A pointer to a null-terminated string containing the last NMEA sentence.
+ * @return A String containing the last NMEA sentence.
  */
-char *GPSModule::lastNMEA()
+String GPSModule::lastNMEA()
 {
-    strcpy(m_nmeaBuffer, m_gps.lastNMEA());
-    return m_nmeaBuffer;
+    return m_lastNMEA;
 }
 
 /**
- * @brief Updates the m_gps data and updates the internal state.
+ * @brief Prints a header row describing the fields in a $GPRMC or $GPGGA sentence.
  */
-void GPSModule::readGps()
+String GPSModule::printHeaderRow(String nmea)
 {
-    m_gps.read();
-}
+    if (nmea == "$GPRMC")
+    {
+        return("Time (UTC), Status, Latitude (deg), North/South, Longitude (deg), East/West, Speed (kt), Course (deg), Date (DDMMYY)");
+    }
+    else if (nmea == "$GPGGA")
+    {
+        return("Time (UTC), Latitude (deg), North/South, Longitude (deg), East/West, Quality, Satellites, HDOP, Altitude (m), Geoidal Separation (m), Age of Differential (s), Differential Reference Station ID");
+    }
 
-/**
- * @brief Static callback function for the update event timer.
- * @param instance A pointer to the GPSModule instance.
- */
-void GPSModule::onUpdateGps(void *instance)
-{
-    GPSModule *self = static_cast<GPSModule *>(instance);
-    self->readGps();
+    return ("Unkown header type");
 }

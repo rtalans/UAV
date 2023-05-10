@@ -15,29 +15,13 @@ public:
      */
     virtual bool setup() = 0;
 
-    /**
-     * @brief Read data from the GPS module.
-     * @return true if successful, false otherwise.
-     */
-    virtual bool read() = 0;
-
-    /**
-     * @brief Check if a new NMEA sentence has been received.
-     * @return true if a new NMEA sentence is available, false otherwise.
-     */
-    virtual bool newNMEAreceived() = 0;
+    virtual bool processGPSData() = 0;
 
     /**
      * @brief Parse the NMEA sentence stored in the provided buffer.
      * @param buffer A character array containing the NMEA sentence to parse.
      */
     virtual void parse(char *buffer) = 0;
-
-    /**
-     * @brief Check if the GPS has a fix.
-     * @return true if the GPS has a fix, false otherwise.
-     */
-    virtual bool isFixed() = 0;
 
     /**
      * @brief Get the latitude from the GPS module.
@@ -85,7 +69,8 @@ public:
      * @brief Get the last NMEA sentence received.
      * @return A pointer to the character array containing the last NMEA sentence.
      */
-    virtual char *lastNMEA() = 0;
+    virtual String lastNMEA() = 0;
+    virtual String printHeaderRow(String nmea) = 0;
 };
 
 #endif

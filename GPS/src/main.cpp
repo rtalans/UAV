@@ -1,26 +1,50 @@
 #include <HardwareSerial.h>
 #include "GPSModule.h"
+#include "DataLogger.h"
+
+// Change these to the new pins you've chosen
+const int GPS_RX_PIN = 33;
+const int GPS_TX_PIN = 32;
 
 HardwareSerial gpsSerial = Serial2;
+GPSModule gpsModule(&gpsSerial);
 
-int8_t rxPin = 16, txPin = 17;
+const int CS_PIN = 27;
+IDataLogger *GPRMCLogger = new DataLogger(CS_PIN, "/GPSData.txt", 10);
+//IDataLogger *GPGGALogger = new DataLogger(CS_PIN, "/GPGGA.txt", 10);
 
-// The second parameter sets up the TickerTimer to perform a GPS read every 500ms (0.5 seconds)
-GPSModule gpsModule(&gpsSerial, 500);
+HardwareSerial &serial = Serial;
+IDataLogger *serialLogger = new DataLogger(&serial);
 
 void DisplayGPSData();
 
 void setup()
 {
-    Serial.begin(9600);
+    Serial.begin(115200);
     while (!Serial)
         ;
 
-    gpsSerial.begin(9600, SERIAL_8N1, rxPin, txPin); // RX, TX pins for ESP32 Dev Module
+    gpsSerial.begin(9600, SERIAL_8N1, GPS_RX_PIN, GPS_TX_PIN);
 
     if (gpsModule.setup())
     {
-        Serial.println("GPS setup Succeeded");
+        serialLogger->logData("GPS setup Succeeded");
+    }
+    else
+    {
+        serialLogger->logData("GPS setup failed!!!");
+    }
+
+    if (GPRMCLogger->begin())
+    {
+        GPRMCLogger->erase();
+        GPRMCLogger->logData(gpsModule.printHeaderRow("$GPRMC").c_str());
+        GPRMCLogger->logData(gpsModule.printHeaderRow("$GPGGA").c_str());
+        serialLogger->logData("Logger initialized successfully");
+    }
+    else
+    {
+        Serial.println("SD Logger initialization failed");
     }
 }
 
@@ -31,22 +55,28 @@ void loop()
 
 void DisplayGPSData()
 {
-    if (gpsModule.newNMEAreceived())
+    if (gpsModule.processGPSData())
     {
-        char *buffer = gpsModule.lastNMEA();
-        gpsModule.parse(buffer);
+        GPRMCLogger->logData(gpsModule.lastNMEA().c_str());
 
-        if (gpsModule.isFixed())
-        {
-            float lat = gpsModule.latitude();
-            float lon = gpsModule.longitude();
-            float alt = gpsModule.altitude();
-            float spd = gpsModule.speed();
-            float crs = gpsModule.course();
-            uint32_t sats = gpsModule.satellites();
+        // if (gpsModule.lastNMEA().startsWith("$GPGGA"))
+        // {
+        //     GPGGALogger->logData(gpsModule.lastNMEA().c_str());
+        // }
 
-            Serial.printf("NMEA:%sLat: %.6f\nLong: %.6f\nAlt: %f\nSpd: %f\nCrs: %f\nSats: %d\n\n",
-                          buffer, lat, lon, alt, spd, crs, sats);
-        }
+        serialLogger->logData(gpsModule.lastNMEA().c_str());
     }
+
+    // if (gpsModule.processGPSData())
+    // {       
+    //     float lat = gpsModule.latitude();
+    //     float lon = gpsModule.longitude();
+    //     float alt = gpsModule.altitude();
+    //     float spd = gpsModule.speed();
+    //     float crs = gpsModule.course();
+    //     uint32_t sats = gpsModule.satellites();
+
+    //     Serial.printf("NMEA:%s\nLat: %.6f\nLong: %.6f\nAlt: %f\nSpd: %f\nCrs: %f\nSats: %d\n\n",
+    //                   gpsModule.lastNMEA(), lat, lon, alt, spd, crs, sats);
+    // }
 }
