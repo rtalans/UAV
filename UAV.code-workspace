@@ -11,6 +11,10 @@
 		{
 			"name": "GPS",
 			"path": "GPS"
+		},
+		{
+			"name": "DataLogger",
+			"path": "DataLogger"
 		}
 	],
 	"settings": {}
