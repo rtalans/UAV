@@ -1,7 +1,11 @@
 #include <HardwareSerial.h>
 #include "BNO055Sensor.h"
+#include "DataLogger.h"
 
-BNO055Sensor bnoSensor(500);
+BNO055Sensor bnoSensor(50);
+
+HardwareSerial &serial = Serial;
+IDataLogger *serialLogger = new DataLogger(&serial);
 
 void DisplayIMUData();
 void DisplayCalStatus();
@@ -13,7 +17,7 @@ void setup()
     Serial.begin(9600);
     if (!bnoSensor.initialize())
     {
-        Serial.println("BNO055 not detected");
+        serialLogger->logData("BNO055 not detected");
         while(1)
             ;
     }
@@ -33,11 +37,11 @@ void loop()
 void DisplayIMUData()
 {
     /* Display the floating point data */
-    Serial.printf("Pitch: %03.4f\tYaw: %03.4f\tRoll: %03.4f\tTemp: %03.2\n",
-                  bnoSensor.getPitch(),
-                  bnoSensor.getYaw(),
-                  bnoSensor.getRoll(),
-                  bnoSensor.getTemperature());
+    serialLogger->logData("Pitch: %03.4f\tYaw: %03.4f\tRoll: %03.4f\tTemp: %03.2\n",
+                        bnoSensor.getPitch(),
+                        bnoSensor.getYaw(),
+                        bnoSensor.getRoll(),
+                        bnoSensor.getTemperature());
 }
 
 /**************************************************************************/
