@@ -1,11 +1,12 @@
 #include "BNO055Sensor.h"
+#include "DataLogger.h"
 
 /**
  * @brief Constructs a new BNO055Sensor with the specified update interval.
  * @param intervalMs The time interval in milliseconds between sensor updates.
  */
-BNO055Sensor::BNO055Sensor(uint32_t intervalMs)
-    : m_interval(intervalMs), m_updateEventTimer(intervalMs, onUpdateEvent, this)
+BNO055Sensor::BNO055Sensor(uint32_t intervalMs, const int16_t csPin,  String offsetsFile)
+    : m_interval(intervalMs), m_csPin(csPin),  m_offsetsFile(offsetsFile), m_updateEventTimer(intervalMs, onUpdateEvent, this)
 {
     m_bno = Adafruit_BNO055(55, 0x28, &Wire);
 }
@@ -22,11 +23,120 @@ bool BNO055Sensor::initialize()
         return (false);
 
     m_bno.setExtCrystalUse(true);
+    delay(10);
 
+    if(!setOffsets())
+    {
+        return (false);
+    }
+    
     m_updateEventTimer.begin();
 
     m_initialized = true;
     return (true);
+}
+
+bool BNO055Sensor::setOffsets()
+{
+    IDataLogger *offsetFile = new DataLogger(m_csPin, m_offsetsFile);
+    if(!offsetFile->begin())
+    {
+        return (false);
+    }
+    offsetFile->readLine(); // Skip the header
+    String offsetsStr = offsetFile->readLine();
+
+    adafruit_bno055_offsets_t offsets;
+    parseOffsetsString(offsetsStr, offsets);
+    m_bno.setSensorOffsets(offsets);
+
+    return (true);
+}
+
+bool BNO055Sensor::parseOffsetsString(const String &offsetsString, adafruit_bno055_offsets_t &offsets)
+{
+    int fieldIndex = 0;
+    String fieldValue;
+
+    for (size_t i = 0; i < offsetsString.length(); i++)
+    {
+        char currentChar = offsetsString.charAt(i);
+
+        if (currentChar == '\t')
+        {
+            // Convert the field value to a float and assign it to the corresponding offset field
+            float value = fieldValue.toFloat();
+
+            switch (fieldIndex)
+            {
+            case 0:
+                offsets.accel_offset_x = value;
+                break;
+            case 1:
+                offsets.accel_offset_y = value;
+                break;
+            case 2:
+                offsets.accel_offset_z = value;
+                break;
+            case 3:
+                offsets.gyro_offset_x = value;
+                break;
+            case 4:
+                offsets.gyro_offset_y = value;
+                break;
+            case 5:
+                offsets.gyro_offset_z = value;
+                break;
+            case 6:
+                offsets.mag_offset_x = value;
+                break;
+            case 7:
+                offsets.mag_offset_y = value;
+                break;
+            case 8:
+                offsets.mag_offset_z = value;
+                break;
+            case 9:
+                offsets.accel_radius = value;
+                break;
+            case 10:
+                offsets.mag_radius = value;
+                break;
+            default:
+                // Invalid field index
+                return false;
+            }
+
+            // Reset the field value for the next field
+            fieldValue = "";
+            fieldIndex++;
+        }
+        else
+        {
+            // Append the character to the current field value
+            fieldValue += currentChar;
+        }
+    }
+
+    // Handle the last field value after the last tab delimiter
+    if (!fieldValue.isEmpty())
+    {
+        // Convert the field value to a float and assign it to the corresponding offset field
+        float value = fieldValue.toFloat();
+
+        if (fieldIndex == 11)
+        {
+            offsets.mag_radius = value;
+        }
+        else
+        {
+            // Incomplete or invalid number of fields
+            return false;
+        }
+    }
+
+    // Verify that all fields have been assigned
+    return (fieldIndex == 11);
 }
 
 /**

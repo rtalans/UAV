@@ -2,7 +2,8 @@
 #include "BNO055Sensor.h"
 #include "DataLogger.h"
 
-BNO055Sensor bnoSensor(50);
+const int16_t CS_PIN = 27;
+BNO055Sensor bnoSensor(10, CS_PIN, "/CalibrationOffsets.txt");
 
 HardwareSerial &serial = Serial;
 IDataLogger *serialLogger = new DataLogger(&serial);
@@ -14,16 +15,16 @@ void DisplaySensorStatus(void);
 
 void setup()
 {
-    Serial.begin(9600);
+    Serial.begin(115200);
+    while (!Serial)
+        ;
+
     if (!bnoSensor.initialize())
     {
-        serialLogger->logData("BNO055 not detected");
+        serialLogger->logData("BNO055 initialization failed");
         while(1)
             ;
     }
-
-    while (!Serial)
-        ;
 
     DisplaySensorDetails();
     DisplaySensorStatus();

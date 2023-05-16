@@ -23,7 +23,7 @@ public:
      * @brief Constructor for BNO055Sensor.
      * @param updateInterval The time interval in milliseconds between sensor updates.
      */
-    BNO055Sensor(uint32_t updateInterval);
+    BNO055Sensor(uint32_t updateInterval, const int16_t csPin, String offsetsFile);
 
     /**
      * @brief Destructor for BNO055Sensor.
@@ -31,6 +31,8 @@ public:
     virtual ~BNO055Sensor() = default;
 
     bool initialize() override;
+    bool setOffsets();
+    bool parseOffsetsString(const String &offsetsString, adafruit_bno055_offsets_t &offsets);
     float getPitch() override;
     float getYaw() override;
     float getRoll() override;
@@ -52,7 +54,8 @@ public:
 private:
     Adafruit_BNO055 m_bno;
     sensors_event_t m_event;
-
+    String m_offsetsFile;
+    const int16_t m_csPin;
     static void onUpdateEvent(void *instance);
     uint32_t m_interval;
     TickerTimer m_updateEventTimer;
