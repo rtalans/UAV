@@ -3,15 +3,14 @@
 #include "DataLogger.h"
 
 // Change these to the new pins you've chosen
-const int GPS_RX_PIN = 33;
-const int GPS_TX_PIN = 32;
+const int8_t GPS_RX_PIN = 33;
+const int8_t GPS_TX_PIN = 32;
 
 HardwareSerial gpsSerial = Serial2;
 GPSModule gpsModule(&gpsSerial);
 
-const int CS_PIN = 27;
-IDataLogger *GPRMCLogger = new DataLogger(CS_PIN, "/GPSData.txt", 10);
-//IDataLogger *GPGGALogger = new DataLogger(CS_PIN, "/GPGGA.txt", 10);
+const int8_t CS_PIN = 27;
+IDataLogger *NMEALogger = new DataLogger(CS_PIN, "/GPSData.txt", 10);
 
 HardwareSerial &serial = Serial;
 IDataLogger *serialLogger = new DataLogger(&serial);
@@ -35,11 +34,11 @@ void setup()
         serialLogger->logData("GPS setup failed!!!");
     }
 
-    if (GPRMCLogger->begin())
+    if (NMEALogger->begin())
     {
-        GPRMCLogger->erase();
-        GPRMCLogger->logData(gpsModule.printHeaderRow("$GPRMC").c_str());
-        GPRMCLogger->logData(gpsModule.printHeaderRow("$GPGGA").c_str());
+        NMEALogger->erase();
+        NMEALogger->logData(gpsModule.printHeaderRow("$GPRMC").c_str());
+        NMEALogger->logData(gpsModule.printHeaderRow("$GPGGA").c_str());
         serialLogger->logData("Logger initialized successfully");
     }
     else
@@ -57,26 +56,7 @@ void DisplayGPSData()
 {
     if (gpsModule.processGPSData())
     {
-        GPRMCLogger->logData(gpsModule.lastNMEA().c_str());
-
-        // if (gpsModule.lastNMEA().startsWith("$GPGGA"))
-        // {
-        //     GPGGALogger->logData(gpsModule.lastNMEA().c_str());
-        // }
-
+        NMEALogger->logData(gpsModule.lastNMEA().c_str());
         serialLogger->logData(gpsModule.lastNMEA().c_str());
     }
-
-    // if (gpsModule.processGPSData())
-    // {       
-    //     float lat = gpsModule.latitude();
-    //     float lon = gpsModule.longitude();
-    //     float alt = gpsModule.altitude();
-    //     float spd = gpsModule.speed();
-    //     float crs = gpsModule.course();
-    //     uint32_t sats = gpsModule.satellites();
-
-    //     Serial.printf("NMEA:%s\nLat: %.6f\nLong: %.6f\nAlt: %f\nSpd: %f\nCrs: %f\nSats: %d\n\n",
-    //                   gpsModule.lastNMEA(), lat, lon, alt, spd, crs, sats);
-    // }
 }
