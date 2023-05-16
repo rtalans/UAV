@@ -1,7 +1,7 @@
 #include "IDataLogger.h"
 #include "DataLogger.h"
 
-const int CS_PIN = 27; // Replace with your chosen CS pin
+const int8_t CS_PIN = 27; // Replace with your chosen CS pin
 HardwareSerial &serial = Serial;
 
 //IDataLogger *sdCardLogger = new DataLogger(CS_PIN, "/data.txt", 10); // DemoContinousLogging

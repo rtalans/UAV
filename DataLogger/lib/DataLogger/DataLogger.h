@@ -18,7 +18,7 @@ public:
      * @param fileName The file name for data logging.
      * @param autoSaveCounter The number of writes after which the file is closed and reopened (default: -1, no auto-save).
      */
-    DataLogger(int chipSelectPin, const String &fileName, int autoSaveCounter = -1);
+    DataLogger(int8_t chipSelectPin, const String &fileName, int16_t autoSaveCounter = -1);
 
     /**
      * @brief Construct a new DataLogger object for logging to a stream like Serial.
@@ -43,6 +43,12 @@ public:
      */
     bool logData(const char *format, ...);
 
+    /**
+     * @brief Read a line from the log file.
+     *
+     * @return The read line as a String object. An empty String is returned if no line is available or an error occurs.
+     */
+    String readLine();
     /**
      * @brief Erase the content of the file.
      *

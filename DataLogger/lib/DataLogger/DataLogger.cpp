@@ -7,7 +7,7 @@
  * @param fileName The file name for data logging.
  * @param autoSaveCounter The number of writes after which the file is closed and reopened (default: -1, no auto-save).
  */
-DataLogger::DataLogger(int chipSelectPin, const String &filename, int autoSaveCounter)
+DataLogger::DataLogger(int8_t chipSelectPin, const String &filename, int16_t autoSaveCounter)
     : m_chipSelectPin(chipSelectPin),
       m_outputStream(nullptr),
       m_filename(filename),
@@ -103,6 +103,24 @@ bool DataLogger::logData(const char *format, ...)
 
         return true;
     }
+}
+
+/**
+ * @brief Read a line from the log file.
+ *
+ * @return The read line as a String object. An empty String is returned if no line is available or an error occurs.
+ */
+String DataLogger::readLine()
+{
+    if (!m_sdCardInitialized || !m_logFile)
+        return "";
+
+    if (m_logFile.available())
+    {
+        return m_logFile.readStringUntil('\n');
+    }
+
+    return "";
 }
 
 /**

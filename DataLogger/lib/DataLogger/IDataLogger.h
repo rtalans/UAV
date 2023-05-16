@@ -31,6 +31,12 @@ public:
     virtual bool logData(const char *format, ...) = 0;
 
     /**
+     * @brief Read a line from the log file.
+     *
+     * @return The read line as a String object. An empty String is returned if no line is available or an error occurs.
+     */
+    virtual String readLine() = 0;
+    /**
      * @brief Close the file if it's open in the data logger implementation.
      */
     virtual void closeFile() = 0;
